@@ -1,65 +1,757 @@
-/* Custom styles */
-.jumbotron {
-    background-color: #f8f9fa;
-    padding: 2rem;
-    border-radius: 0.3rem;
+/* ==================== EduFlow LMS Enhanced Styles ==================== */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --success-color: #4cc9f0;
+    --danger-color: #f72585;
+    --warning-color: #f8961e;
+    --info-color: #4895ef;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --gray-color: #6c757d;
+    --border-radius: 10px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --box-shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.2);
+    --transition: all 0.3s ease;
 }
 
+/* ==================== Global Styles ==================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* ==================== Enhanced Jumbotron ==================== */
+.jumbotron {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.jumbotron::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.jumbotron h1 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.jumbotron .lead {
+    font-size: 1.25rem;
+    opacity: 0.95;
+}
+
+/* ==================== Progress Bar Enhancements ==================== */
 .progress {
     height: 25px;
+    border-radius: 20px;
+    background-color: #e9ecef;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    overflow: hidden;
+    position: relative;
 }
 
 .progress-bar {
     font-size: 14px;
     line-height: 25px;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    position: relative;
+    overflow: hidden;
+    transition: width 0.5s ease;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0.2) 75%,
+        transparent 75%);
+    background-size: 50px 100%;
+    animation: move 2s linear infinite;
+}
+
+@keyframes move {
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 0; }
+}
+
+/* ==================== Card Enhancements ==================== */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-hover);
 }
 
 .card-img-top {
     height: 200px;
     object-fit: cover;
+    transition: var(--transition);
 }
 
-/* Forum styles */
+.card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.card-footer {
+    background: transparent;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding: 1rem 1.5rem;
+}
+
+/* Course Category Badge */
+.category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    backdrop-filter: blur(5px);
+    z-index: 10;
+}
+
+/* ==================== Enhanced Forum Styles ==================== */
 .thread-list .list-group-item {
-    transition: background-color 0.3s;
+    border: none;
+    margin-bottom: 10px;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .thread-list .list-group-item:hover {
-    background-color: #f8f9fa;
+    transform: translateX(5px);
+    background: linear-gradient(90deg, #f8f9fa, white);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .forum-post {
-    border-left: 3px solid #007bff;
-    padding-left: 15px;
-    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 20px;
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    box-shadow: var(--box-shadow);
+    position: relative;
 }
 
-/* Quiz styles */
+.forum-post::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+}
+
+.forum-post .post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.forum-post .post-author {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.forum-post .post-date {
+    color: var(--gray-color);
+    font-size: 0.9rem;
+}
+
+.forum-post .post-content {
+    line-height: 1.6;
+}
+
+/* ==================== Enhanced Quiz Styles ==================== */
 .quiz-question {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 5px;
-    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f8f9fa, white);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    margin-bottom: 25px;
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: var(--transition);
+}
+
+.quiz-question:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.quiz-question h5 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
 }
 
 .quiz-option {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
+    margin: 12px 0;
+    padding: 12px 15px;
+    border: 2px solid #dee2e6;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .quiz-option:hover {
-    background-color: #e9ecef;
+    border-color: var(--primary-color);
+    background: linear-gradient(90deg, #f8f9fa, white);
+    transform: translateX(5px);
 }
 
-/* Responsive adjustments */
+.quiz-option input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+    accent-color: var(--primary-color);
+}
+
+.quiz-option.selected {
+    border-color: var(--success-color);
+    background: rgba(76, 201, 240, 0.1);
+}
+
+.quiz-option.correct {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.quiz-option.incorrect {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Quiz Timer */
+.quiz-timer {
+    background: linear-gradient(135deg, var(--danger-color), #dc3545);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* ==================== Enhanced Assignment Styles ==================== */
+.assignment-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--box-shadow);
+    border-left: 4px solid var(--warning-color);
+    transition: var(--transition);
+}
+
+.assignment-card:hover {
+    transform: translateX(5px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.assignment-card.overdue {
+    border-left-color: var(--danger-color);
+    background: rgba(247, 37, 133, 0.05);
+}
+
+.assignment-card.submitted {
+    border-left-color: var(--success-color);
+    background: rgba(76, 201, 240, 0.05);
+}
+
+.assignment-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.assignment-meta span {
+    padding: 3px 10px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    color: var(--gray-color);
+}
+
+/* ==================== Dashboard Stats ==================== */
+.stats-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.stats-card .stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.stats-card .stats-label {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* ==================== Loading Spinner ==================== */
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(67, 97, 238, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== Toast Notifications ==================== */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-hover);
+    padding: 15px 20px;
+    transform: translateX(400px);
+    animation: slideIn 0.3s forwards;
+    z-index: 9999;
+}
+
+@keyframes slideIn {
+    to { transform: translateX(0); }
+}
+
+.toast-notification.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast-notification.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-notification.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-notification.info {
+    border-left: 4px solid #17a2b8;
+}
+
+/* ==================== Floating Action Button ==================== */
+.fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--box-shadow-hover);
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 1000;
+}
+
+.fab:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+.fab i {
+    font-size: 24px;
+}
+
+/* ==================== Tooltip ==================== */
+.tooltip-custom {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-custom .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--dark-color);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-custom:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ==================== Dark Mode Toggle ==================== */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--dark-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--box-shadow);
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.dark-mode-toggle:hover {
+    transform: rotate(180deg);
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: #e0e0e0;
+}
+
+body.dark-mode .card {
+    background: #16213e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .forum-post {
+    background: #1a1a2e;
+    color: #e0e0e0;
+}
+
+/* ==================== Search Bar Enhancement ==================== */
+.search-container {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 15px 20px;
+    padding-left: 50px;
+    border: none;
+    border-radius: 50px;
+    box-shadow: var(--box-shadow);
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+
+.search-container input:focus {
+    outline: none;
+    box-shadow: var(--box-shadow-hover);
+    transform: scale(1.02);
+}
+
+.search-container i {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-color);
+    font-size: 1.2rem;
+}
+
+/* ==================== Breadcrumb Enhancement ==================== */
+.breadcrumb {
+    background: transparent;
+    padding: 10px 0;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+/* ==================== Pagination ==================== */
+.pagination {
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+    border: none;
+    margin: 0 5px;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.pagination .page-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* ==================== File Upload ==================== */
+.file-upload {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.file-upload input[type="file"] {
+    display: none;
+}
+
+.file-upload label {
+    display: block;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--border-radius);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.file-upload label:hover {
+    background: rgba(67, 97, 238, 0.1);
+    border-color: var(--secondary-color);
+}
+
+.file-upload label i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+/* ==================== Responsive Design Enhancements ==================== */
 @media (max-width: 768px) {
     .jumbotron {
-        padding: 1rem;
+        padding: 2rem 1rem;
     }
 
+    .jumbotron h1 {
+        font-size: 2rem;
+    }
+
+    .stats-card {
+        margin-bottom: 15px;
+    }
+
+    .fab {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .dark-mode-toggle {
+        bottom: 20px;
+        left: 20px;
+    }
+
+    .quiz-option {
+        padding: 10px;
+    }
+
+    .forum-post {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
     h1 {
         font-size: 1.8rem;
     }
+
+    .card-img-top {
+        height: 150px;
+    }
+
+    .assignment-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .toast-notification {
+        min-width: 250px;
+        right: 10px;
+        left: 10px;
+    }
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+    .no-print {
+        display: none;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+
+    .progress-bar {
+        background: #ddd;
+    }
+}
+
+/* ==================== Accessibility ==================== */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+:focus {
+    outline: 3px solid rgba(67, 97, 238, 0.5);
+    outline-offset: 2px;
+}
+
+/* ==================== Animation Keyframes ==================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease forwards;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s ease forwards;
+}
+
+/* ==================== Custom Scrollbar ==================== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
 }

@@ -15,7 +15,7 @@
 
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
                         {% for error in form.email.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
@@ -23,10 +23,15 @@
 
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
                         {% for error in form.password.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                        <label class="form-check-label" for="remember_me">Remember me</label>
                     </div>
 
                     <div class="d-grid gap-2">

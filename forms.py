@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, SelectField, IntegerField, BooleanField, PasswordField
+from wtforms import StringField, TextAreaField, SelectField, IntegerField, BooleanField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
 from models import User
 
@@ -10,6 +10,7 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
@@ -25,6 +26,7 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
 
 
 class CourseForm(FlaskForm):
@@ -32,12 +34,14 @@ class CourseForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     category = StringField('Category')
     thumbnail = FileField('Thumbnail', validators=[FileAllowed(['jpg', 'png', 'jpeg', 'gif'])])
+    submit = SubmitField('Create Course')
 
 
 class ModuleForm(FlaskForm):
     title = StringField('Module Title', validators=[DataRequired()])
     description = TextAreaField('Description')
     order = IntegerField('Order', validators=[DataRequired()])
+    submit = SubmitField('Add Module')
 
 
 class ContentForm(FlaskForm):
@@ -50,6 +54,7 @@ class ContentForm(FlaskForm):
     content_url = StringField('Video URL/Embed Code')
     content_text = TextAreaField('Text Content')
     order = IntegerField('Order', validators=[DataRequired()])
+    submit = SubmitField('Add Content')
 
 
 class QuizForm(FlaskForm):
@@ -57,6 +62,7 @@ class QuizForm(FlaskForm):
     description = TextAreaField('Description')
     time_limit = IntegerField('Time Limit (minutes)')
     passing_score = IntegerField('Passing Score (%)', default=70)
+    submit = SubmitField('Add Quiz')
 
 
 class QuestionForm(FlaskForm):
@@ -68,6 +74,7 @@ class QuestionForm(FlaskForm):
     options = TextAreaField('Options (one per line)')
     correct_answer = StringField('Correct Answer', validators=[DataRequired()])
     points = IntegerField('Points', default=1)
+    submit = SubmitField('Add Question')
 
 
 class AssignmentForm(FlaskForm):
@@ -75,3 +82,4 @@ class AssignmentForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     due_date = StringField('Due Date (YYYY-MM-DD)')
     max_score = IntegerField('Maximum Score', default=100)
+    submit = SubmitField('Add Assignment')

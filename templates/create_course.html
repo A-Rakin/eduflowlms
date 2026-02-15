@@ -15,7 +15,7 @@
 
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
-                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="e.g., Python Programming for Beginners") }}
                         {% for error in form.title.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
@@ -23,7 +23,7 @@
 
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5, placeholder="Provide a detailed description of your course...") }}
                         {% for error in form.description.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
@@ -31,11 +31,11 @@
 
                     <div class="mb-3">
                         {{ form.category.label(class="form-label") }}
-                        {{ form.category(class="form-control" + (" is-invalid" if form.category.errors else "")) }}
+                        {{ form.category(class="form-control" + (" is-invalid" if form.category.errors else ""), placeholder="e.g., Programming, Business, Design") }}
                         {% for error in form.category.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
-                        <small class="text-muted">e.g., Programming, Business, Design, etc.</small>
+                        <small class="text-muted">Enter the course category</small>
                     </div>
 
                     <div class="mb-3">
@@ -44,11 +44,11 @@
                         {% for error in form.thumbnail.errors %}
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
-                        <small class="text-muted">Upload a course thumbnail (JPG, PNG, GIF)</small>
+                        <small class="text-muted">Upload a course thumbnail (JPG, PNG, GIF) - Recommended size: 1280x720</small>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Create Course</button>
+                        {{ form.submit(class="btn btn-primary") }}
                         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>

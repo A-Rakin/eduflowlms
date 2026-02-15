@@ -64,4 +64,16 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add is_instructor field to form data when submitting
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function() {
+        const isInstructor = document.getElementById('is_instructor').checked;
+        // You can add this to form data if needed
+        console.log('Registering as instructor:', isInstructor);
+    });
+});
+</script>
 {% endblock %}

@@ -899,6 +899,21 @@ def profile():
 
     return render_template('profile.html')
 
+# Add custom Jinja2 filters
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    import json
+    try:
+        return json.loads(value)
+    except:
+        return []
+
+@app.template_filter('nl2br')
+def nl2br_filter(value):
+    if value:
+        return value.replace('\n', '<br>\n')
+    return ''
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

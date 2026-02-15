@@ -22,13 +22,31 @@
         {% for course in courses %}
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
+                    <!-- Category Badge -->
+                    <div class="category-badge">{{ course.category or 'Uncategorized' }}</div>
+
+                    <!-- Course Image -->
                     {% if course.thumbnail %}
-                        <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}" class="card-img-top" alt="{{ course.title }}" style="height: 200px; object-fit: cover;">
+                        <!-- Use uploaded thumbnail if available -->
+                        <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}"
+                             class="card-img-top" alt="{{ course.title }}">
                     {% else %}
-                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <span>{{ course.category or 'No Image' }}</span>
-                        </div>
+                        <!-- Use category-specific image -->
+                        {% set category_image = {
+                            'Programming': 'programming.jpg',
+                            'Web Development': 'web-development.jpg',
+                            'Data Science': 'data-science.jpg',
+                            'Business': 'business.jpg',
+                            'Marketing': 'marketing.jpg'
+                        } %}
+
+                        {% set image_file = category_image.get(course.category, 'default.jpg') %}
+                        <img src="{{ url_for('static', filename='images/categories/' + image_file) }}"
+                             class="card-img-top"
+                             alt="{{ course.category }}"
+                             onerror="this.src='{{ url_for('static', filename='images/categories/default.jpg') }}'">
                     {% endif %}
+
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
                         <p class="card-text">{{ course.description[:150] }}{% if course.description|length > 150 %}...{% endif %}</p>

@@ -1,0 +1,65 @@
+/* Custom styles */
+.jumbotron {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 0.3rem;
+}
+
+.progress {
+    height: 25px;
+}
+
+.progress-bar {
+    font-size: 14px;
+    line-height: 25px;
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Forum styles */
+.thread-list .list-group-item {
+    transition: background-color 0.3s;
+}
+
+.thread-list .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.forum-post {
+    border-left: 3px solid #007bff;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+/* Quiz styles */
+.quiz-question {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.quiz-option {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.quiz-option:hover {
+    background-color: #e9ecef;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+}

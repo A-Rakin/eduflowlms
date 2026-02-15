@@ -580,6 +580,325 @@ def get_course_progress(course_id):
     })
 
 
+# Additional Routes to add to app.py
+
+@app.route('/course/<int:course_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        abort(403)
+
+    form = CourseForm()
+    if form.validate_on_submit():
+        course.title = form.title.data
+        course.description = form.description.data
+        course.category = form.category.data
+
+        if form.thumbnail.data:
+            file = form.thumbnail.data
+            thumbnail_filename = secure_filename(f"{uuid.uuid4()}_{file.filename}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_filename))
+            course.thumbnail = thumbnail_filename
+
+        db.session.commit()
+        flash('Course updated successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=course.id))
+
+    elif request.method == 'GET':
+        form.title.data = course.title
+        form.description.data = course.description
+        form.category.data = course.category
+
+    return render_template('edit_course.html', form=form, course=course)
+
+
+@app.route('/course/<int:course_id>/delete', methods=['POST'])
+@login_required
+def delete_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    if course.instructor_id != current_user.id:
+        abort(403)
+
+    db.session.delete(course)
+    db.session.commit()
+    flash('Course deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/module/<int:module_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_module(module_id):
+    module = Module.query.get_or_404(module_id)
+    if module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = ModuleForm()
+    if form.validate_on_submit():
+        module.title = form.title.data
+        module.description = form.description.data
+        module.order = form.order.data
+        db.session.commit()
+        flash('Module updated successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=module.course.id))
+
+    elif request.method == 'GET':
+        form.title.data = module.title
+        form.description.data = module.description
+        form.order.data = module.order
+
+    return render_template('edit_module.html', form=form, module=module)
+
+
+@app.route('/module/<int:module_id>/delete', methods=['POST'])
+@login_required
+def delete_module(module_id):
+    module = Module.query.get_or_404(module_id)
+    if module.course.instructor_id != current_user.id:
+        abort(403)
+
+    course_id = module.course.id
+    db.session.delete(module)
+    db.session.commit()
+    flash('Module deleted successfully!', 'success')
+    return redirect(url_for('manage_course', course_id=course_id))
+
+
+@app.route('/content/<int:content_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_content(content_id):
+    content = Content.query.get_or_404(content_id)
+    if content.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = ContentForm()
+    if form.validate_on_submit():
+        content.title = form.title.data
+        content.content_type = form.content_type.data
+        content.content_url = form.content_url.data
+        content.content_text = form.content_text.data
+        content.order = form.order.data
+        db.session.commit()
+        flash('Content updated successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=content.module.course.id))
+
+    elif request.method == 'GET':
+        form.title.data = content.title
+        form.content_type.data = content.content_type
+        form.content_url.data = content.content_url
+        form.content_text.data = content.content_text
+        form.order.data = content.order
+
+    return render_template('edit_content.html', form=form, content=content)
+
+
+@app.route('/content/<int:content_id>/delete', methods=['POST'])
+@login_required
+def delete_content(content_id):
+    content = Content.query.get_or_404(content_id)
+    if content.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    course_id = content.module.course.id
+    db.session.delete(content)
+    db.session.commit()
+    flash('Content deleted successfully!', 'success')
+    return redirect(url_for('manage_course', course_id=course_id))
+
+
+@app.route('/quiz/<int:quiz_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if quiz.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = QuizForm()
+    if form.validate_on_submit():
+        quiz.title = form.title.data
+        quiz.description = form.description.data
+        quiz.time_limit = form.time_limit.data
+        quiz.passing_score = form.passing_score.data
+        db.session.commit()
+        flash('Quiz updated successfully!', 'success')
+        return redirect(url_for('manage_quiz', quiz_id=quiz.id))
+
+    elif request.method == 'GET':
+        form.title.data = quiz.title
+        form.description.data = quiz.description
+        form.time_limit.data = quiz.time_limit
+        form.passing_score.data = quiz.passing_score
+
+    return render_template('edit_quiz.html', form=form, quiz=quiz)
+
+
+@app.route('/quiz/<int:quiz_id>/delete', methods=['POST'])
+@login_required
+def delete_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if quiz.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    course_id = quiz.module.course.id
+    db.session.delete(quiz)
+    db.session.commit()
+    flash('Quiz deleted successfully!', 'success')
+    return redirect(url_for('manage_course', course_id=course_id))
+
+
+@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    if question.quiz.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = QuestionForm()
+    if form.validate_on_submit():
+        question.text = form.text.data
+        question.question_type = form.question_type.data
+        question.correct_answer = form.correct_answer.data
+        question.points = form.points.data
+
+        if form.question_type.data == 'multiple_choice':
+            question.options = json.dumps([opt.strip() for opt in form.options.data.split('\n') if opt.strip()])
+        else:
+            question.options = None
+
+        db.session.commit()
+        flash('Question updated successfully!', 'success')
+        return redirect(url_for('manage_quiz', quiz_id=question.quiz.id))
+
+    elif request.method == 'GET':
+        form.text.data = question.text
+        form.question_type.data = question.question_type
+        form.correct_answer.data = question.correct_answer
+        form.points.data = question.points
+        if question.options:
+            options = json.loads(question.options)
+            form.options.data = '\n'.join(options)
+
+    return render_template('edit_question.html', form=form, question=question)
+
+
+@app.route('/question/<int:question_id>/delete', methods=['POST'])
+@login_required
+def delete_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    if question.quiz.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    quiz_id = question.quiz.id
+    db.session.delete(question)
+    db.session.commit()
+    flash('Question deleted successfully!', 'success')
+    return redirect(url_for('manage_quiz', quiz_id=quiz_id))
+
+
+@app.route('/assignment/<int:assignment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_assignment(assignment_id):
+    assignment = Assignment.query.get_or_404(assignment_id)
+    if assignment.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = AssignmentForm()
+    if form.validate_on_submit():
+        assignment.title = form.title.data
+        assignment.description = form.description.data
+        if form.due_date.data:
+            assignment.due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d')
+        assignment.max_score = form.max_score.data
+        db.session.commit()
+        flash('Assignment updated successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=assignment.module.course.id))
+
+    elif request.method == 'GET':
+        form.title.data = assignment.title
+        form.description.data = assignment.description
+        if assignment.due_date:
+            form.due_date.data = assignment.due_date.strftime('%Y-%m-%d')
+        form.max_score.data = assignment.max_score
+
+    return render_template('edit_assignment.html', form=form, assignment=assignment)
+
+
+@app.route('/assignment/<int:assignment_id>/delete', methods=['POST'])
+@login_required
+def delete_assignment(assignment_id):
+    assignment = Assignment.query.get_or_404(assignment_id)
+    if assignment.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    course_id = assignment.module.course.id
+    db.session.delete(assignment)
+    db.session.commit()
+    flash('Assignment deleted successfully!', 'success')
+    return redirect(url_for('manage_course', course_id=course_id))
+
+
+@app.route('/submission/<int:submission_id>/grade', methods=['GET', 'POST'])
+@login_required
+def grade_submission(submission_id):
+    submission = Submission.query.get_or_404(submission_id)
+    if submission.assignment.module.course.instructor_id != current_user.id:
+        abort(403)
+
+    if request.method == 'POST':
+        submission.score = float(request.form.get('score'))
+        submission.feedback = request.form.get('feedback')
+        submission.graded_at = datetime.utcnow()
+        db.session.commit()
+        flash('Submission graded successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=submission.assignment.module.course.id))
+
+    return render_template('grade_submission.html', submission=submission)
+
+
+@app.route('/quiz/<int:quiz_id>/results')
+@login_required
+def quiz_results(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if quiz.module.course.instructor_id != current_user.id and not current_user.is_instructor:
+        abort(403)
+
+    attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).all()
+    return render_template('quiz_results.html', quiz=quiz, attempts=attempts)
+
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '')
+    if query:
+        courses = Course.query.filter(
+            (Course.title.contains(query)) | (Course.description.contains(query))
+        ).all()
+    else:
+        courses = []
+    return render_template('search_results.html', courses=courses, query=query)
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username = request.form.get('username')
+        current_user.email = request.form.get('email')
+
+        if request.form.get('new_password'):
+            if check_password_hash(current_user.password, request.form.get('current_password')):
+                current_user.password = generate_password_hash(request.form.get('new_password'))
+                flash('Password updated successfully!', 'success')
+            else:
+                flash('Current password is incorrect!', 'danger')
+                return redirect(url_for('profile'))
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    return render_template('profile.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

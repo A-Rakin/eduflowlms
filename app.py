@@ -5,13 +5,12 @@ from flask import Flask, render_template, redirect, url_for, flash, request, abo
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 import json
 
 from config import Config
 from models import db, User, Course, Module, Content, Quiz, Question, Assignment
-from models import Enrollment, Progress, QuizAttempt, Submission, Certificate, ForumThread, ForumPost
+from models import Enrollment, Progress, QuizAttempt, Submission, ForumThread, ForumPost
+from models import ContentCompletion
 from forms import RegistrationForm, LoginForm, CourseForm, ModuleForm, ContentForm
 from forms import QuizForm, QuestionForm, AssignmentForm
 
@@ -32,7 +31,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# Routes
+# ==================== AUTHENTICATION ROUTES ====================
 @app.route('/')
 def index():
     courses = Course.query.order_by(Course.created_at.desc()).limit(6).all()
@@ -47,13 +46,17 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
+        is_instructor = request.form.get('is_instructor') == 'on'
+
         user = User(
             username=form.username.data,
             email=form.email.data,
-            password=hashed_password
+            password=hashed_password,
+            is_instructor=is_instructor
         )
         db.session.add(user)
         db.session.commit()
+
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
 
@@ -95,7 +98,7 @@ def dashboard():
         return render_template('dashboard.html', enrollments=enrollments)
 
 
-# Course Management
+# ==================== COURSE MANAGEMENT ====================
 @app.route('/course/create', methods=['GET', 'POST'])
 @login_required
 def create_course():
@@ -154,7 +157,6 @@ def manage_course(course_id):
 def enroll_course(course_id):
     course = Course.query.get_or_404(course_id)
 
-    # Check if already enrolled
     existing = Enrollment.query.filter_by(
         student_id=current_user.id,
         course_id=course_id
@@ -172,7 +174,7 @@ def enroll_course(course_id):
     return redirect(url_for('view_course', course_id=course_id))
 
 
-# Module Management
+# ==================== MODULE MANAGEMENT ====================
 @app.route('/course/<int:course_id>/module/add', methods=['GET', 'POST'])
 @login_required
 def add_module(course_id):
@@ -196,7 +198,7 @@ def add_module(course_id):
     return render_template('add_module.html', form=form, course=course)
 
 
-# Content Management
+# ==================== CONTENT MANAGEMENT ====================
 @app.route('/module/<int:module_id>/content/add', methods=['GET', 'POST'])
 @login_required
 def add_content(module_id):
@@ -222,7 +224,22 @@ def add_content(module_id):
     return render_template('add_content.html', form=form, module=module)
 
 
-# Quiz Management
+@app.route('/learn/<int:course_id>/module/<int:module_id>/content/<int:content_id>')
+@login_required
+def view_content(course_id, module_id, content_id):
+    course = Course.query.get_or_404(course_id)
+    module = Module.query.get_or_404(module_id)
+    content = Content.query.get_or_404(content_id)
+
+    enrollment = Enrollment.query.filter_by(
+        student_id=current_user.id,
+        course_id=course_id
+    ).first_or_404()
+
+    return render_template('view_content.html', course=course, module=module, content=content)
+
+
+# ==================== QUIZ MANAGEMENT ====================
 @app.route('/module/<int:module_id>/quiz/add', methods=['GET', 'POST'])
 @login_required
 def add_quiz(module_id):
@@ -286,75 +303,6 @@ def add_question(quiz_id):
     return render_template('add_question.html', form=form, quiz=quiz)
 
 
-# Assignment Management
-@app.route('/module/<int:module_id>/assignment/add', methods=['GET', 'POST'])
-@login_required
-def add_assignment(module_id):
-    module = Module.query.get_or_404(module_id)
-    if module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = AssignmentForm()
-    if form.validate_on_submit():
-        due_date = None
-        if form.due_date.data:
-            due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d')
-
-        assignment = Assignment(
-            title=form.title.data,
-            description=form.description.data,
-            due_date=due_date,
-            max_score=form.max_score.data,
-            module_id=module_id
-        )
-        db.session.add(assignment)
-        db.session.commit()
-        flash('Assignment added successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=module.course.id))
-
-    return render_template('add_assignment.html', form=form, module=module)
-
-
-# Learning Routes
-@app.route('/learn/<int:course_id>/module/<int:module_id>/content/<int:content_id>')
-@login_required
-def view_content(course_id, module_id, content_id):
-    course = Course.query.get_or_404(course_id)
-    module = Module.query.get_or_404(module_id)
-    content = Content.query.get_or_404(content_id)
-
-    # Check enrollment
-    enrollment = Enrollment.query.filter_by(
-        student_id=current_user.id,
-        course_id=course_id
-    ).first_or_404()
-
-    # Mark as completed
-    completion = ContentCompletion.query.filter_by(
-        user_id=current_user.id,
-        content_id=content_id
-    ).first()
-
-    if not completion:
-        completion = ContentCompletion(
-            user_id=current_user.id,
-            content_id=content_id
-        )
-        db.session.add(completion)
-
-        # Update progress
-        progress = Progress(
-            enrollment_id=enrollment.id,
-            content_id=content_id,
-            completed=True,
-            completed_at=datetime.utcnow()
-        )
-        db.session.add(progress)
-        db.session.commit()
-
-    return render_template('view_content.html', course=course, module=module, content=content)
-
-
 @app.route('/quiz/<int:quiz_id>/take', methods=['GET', 'POST'])
 @login_required
 def take_quiz(quiz_id):
@@ -391,6 +339,35 @@ def take_quiz(quiz_id):
     return render_template('take_quiz.html', quiz=quiz)
 
 
+# ==================== ASSIGNMENT MANAGEMENT ====================
+@app.route('/module/<int:module_id>/assignment/add', methods=['GET', 'POST'])
+@login_required
+def add_assignment(module_id):
+    module = Module.query.get_or_404(module_id)
+    if module.course.instructor_id != current_user.id:
+        abort(403)
+
+    form = AssignmentForm()
+    if form.validate_on_submit():
+        due_date = None
+        if form.due_date.data:
+            due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d')
+
+        assignment = Assignment(
+            title=form.title.data,
+            description=form.description.data,
+            due_date=due_date,
+            max_score=form.max_score.data,
+            module_id=module_id
+        )
+        db.session.add(assignment)
+        db.session.commit()
+        flash('Assignment added successfully!', 'success')
+        return redirect(url_for('manage_course', course_id=module.course.id))
+
+    return render_template('add_assignment.html', form=form, module=module)
+
+
 @app.route('/assignment/<int:assignment_id>/submit', methods=['GET', 'POST'])
 @login_required
 def submit_assignment(assignment_id):
@@ -422,69 +399,70 @@ def submit_assignment(assignment_id):
     return render_template('submit_assignment.html', assignment=assignment)
 
 
-# Certificate Generation
-@app.route('/certificate/<int:course_id>/generate')
+# ==================== PROGRESS TRACKING ====================
+@app.route('/api/progress/<int:content_id>', methods=['POST'])
 @login_required
-def generate_certificate(course_id):
-    course = Course.query.get_or_404(course_id)
+def mark_content_complete(content_id):
+    content = Content.query.get_or_404(content_id)
+
     enrollment = Enrollment.query.filter_by(
         student_id=current_user.id,
-        course_id=course_id
-    ).first_or_404()
-
-    # Check if course completed (all contents viewed)
-    total_contents = Content.query.join(Module).filter(Module.course_id == course_id).count()
-    completed_contents = ContentCompletion.query.filter_by(user_id=current_user.id).count()
-
-    if total_contents > completed_contents:
-        flash('Please complete all course content before generating certificate.', 'warning')
-        return redirect(url_for('view_course', course_id=course_id))
-
-    # Check if certificate already exists
-    existing = Certificate.query.filter_by(
-        user_id=current_user.id,
-        course_id=course_id
+        course_id=content.module.course.id
     ).first()
 
-    if existing:
-        return send_file(existing.certificate_url, as_attachment=True)
+    if not enrollment:
+        return jsonify({'status': 'error', 'message': 'Not enrolled in this course'}), 403
 
-    # Generate new certificate
-    cert_number = f"CERT-{uuid.uuid4().hex[:8].upper()}"
-    filename = f"certificate_{current_user.id}_{course_id}.pdf"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-    # Create PDF certificate
-    c = canvas.Canvas(filepath, pagesize=letter)
-    c.setFont("Helvetica-Bold", 24)
-    c.drawString(200, 500, "Certificate of Completion")
-    c.setFont("Helvetica", 16)
-    c.drawString(150, 400, f"This certifies that {current_user.username}")
-    c.drawString(150, 350, f"has successfully completed the course")
-    c.setFont("Helvetica-Bold", 20)
-    c.drawString(150, 300, course.title)
-    c.setFont("Helvetica", 12)
-    c.drawString(150, 200, f"Certificate Number: {cert_number}")
-    c.drawString(150, 170, f"Issued on: {datetime.now().strftime('%B %d, %Y')}")
-    c.save()
-
-    certificate = Certificate(
+    completion = ContentCompletion.query.filter_by(
         user_id=current_user.id,
-        course_id=course_id,
-        certificate_url=filepath,
-        certificate_number=cert_number
-    )
-    db.session.add(certificate)
+        content_id=content_id
+    ).first()
 
-    # Mark course as completed
-    enrollment.completed = True
-    enrollment.completed_at = datetime.utcnow()
-    db.session.commit()
+    if not completion:
+        completion = ContentCompletion(
+            user_id=current_user.id,
+            content_id=content_id
+        )
+        db.session.add(completion)
 
-    return send_file(filepath, as_attachment=True)
+        progress = Progress(
+            enrollment_id=enrollment.id,
+            content_id=content_id,
+            completed=True,
+            completed_at=datetime.utcnow()
+        )
+        db.session.add(progress)
+        db.session.commit()
+
+        return jsonify({'status': 'success', 'message': 'Content marked as complete'})
+
+    return jsonify({'status': 'info', 'message': 'Already completed'})
 
 
-# Forum Routes
+@app.route('/api/course/<int:course_id>/progress')
+@login_required
+def get_course_progress(course_id):
+    total_contents = db.session.query(Content).join(Module).filter(Module.course_id == course_id).count()
+
+    completed_contents = db.session.query(ContentCompletion).join(
+        Content
+    ).join(
+        Module
+    ).filter(
+        ContentCompletion.user_id == current_user.id,
+        Module.course_id == course_id
+    ).count()
+
+    progress_percentage = (completed_contents / total_contents * 100) if total_contents > 0 else 0
+
+    return jsonify({
+        'total': total_contents,
+        'completed': completed_contents,
+        'percentage': progress_percentage
+    })
+
+
+# ==================== FORUM ROUTES ====================
 @app.route('/course/<int:course_id>/forum')
 @login_required
 def forum(course_id):
@@ -541,331 +519,7 @@ def add_post(thread_id):
     return redirect(url_for('view_thread', thread_id=thread_id))
 
 
-# API Routes for Progress Tracking
-@app.route('/api/progress/<int:content_id>', methods=['POST'])
-@login_required
-def mark_content_complete(content_id):
-    content = Content.query.get_or_404(content_id)
-
-    completion = ContentCompletion.query.filter_by(
-        user_id=current_user.id,
-        content_id=content_id
-    ).first()
-
-    if not completion:
-        completion = ContentCompletion(
-            user_id=current_user.id,
-            content_id=content_id
-        )
-        db.session.add(completion)
-        db.session.commit()
-
-        return jsonify({'status': 'success', 'message': 'Content marked as complete'})
-
-    return jsonify({'status': 'info', 'message': 'Already completed'})
-
-
-@app.route('/api/course/<int:course_id>/progress')
-@login_required
-def get_course_progress(course_id):
-    total_contents = Content.query.join(Module).filter(Module.course_id == course_id).count()
-    completed_contents = ContentCompletion.query.filter_by(user_id=current_user.id).count()
-
-    progress_percentage = (completed_contents / total_contents * 100) if total_contents > 0 else 0
-
-    return jsonify({
-        'total': total_contents,
-        'completed': completed_contents,
-        'percentage': progress_percentage
-    })
-
-
-# Additional Routes to add to app.py
-
-@app.route('/course/<int:course_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    if course.instructor_id != current_user.id:
-        abort(403)
-
-    form = CourseForm()
-    if form.validate_on_submit():
-        course.title = form.title.data
-        course.description = form.description.data
-        course.category = form.category.data
-
-        if form.thumbnail.data:
-            file = form.thumbnail.data
-            thumbnail_filename = secure_filename(f"{uuid.uuid4()}_{file.filename}")
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_filename))
-            course.thumbnail = thumbnail_filename
-
-        db.session.commit()
-        flash('Course updated successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=course.id))
-
-    elif request.method == 'GET':
-        form.title.data = course.title
-        form.description.data = course.description
-        form.category.data = course.category
-
-    return render_template('edit_course.html', form=form, course=course)
-
-
-@app.route('/course/<int:course_id>/delete', methods=['POST'])
-@login_required
-def delete_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    if course.instructor_id != current_user.id:
-        abort(403)
-
-    db.session.delete(course)
-    db.session.commit()
-    flash('Course deleted successfully!', 'success')
-    return redirect(url_for('dashboard'))
-
-
-@app.route('/module/<int:module_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_module(module_id):
-    module = Module.query.get_or_404(module_id)
-    if module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = ModuleForm()
-    if form.validate_on_submit():
-        module.title = form.title.data
-        module.description = form.description.data
-        module.order = form.order.data
-        db.session.commit()
-        flash('Module updated successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=module.course.id))
-
-    elif request.method == 'GET':
-        form.title.data = module.title
-        form.description.data = module.description
-        form.order.data = module.order
-
-    return render_template('edit_module.html', form=form, module=module)
-
-
-@app.route('/module/<int:module_id>/delete', methods=['POST'])
-@login_required
-def delete_module(module_id):
-    module = Module.query.get_or_404(module_id)
-    if module.course.instructor_id != current_user.id:
-        abort(403)
-
-    course_id = module.course.id
-    db.session.delete(module)
-    db.session.commit()
-    flash('Module deleted successfully!', 'success')
-    return redirect(url_for('manage_course', course_id=course_id))
-
-
-@app.route('/content/<int:content_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_content(content_id):
-    content = Content.query.get_or_404(content_id)
-    if content.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = ContentForm()
-    if form.validate_on_submit():
-        content.title = form.title.data
-        content.content_type = form.content_type.data
-        content.content_url = form.content_url.data
-        content.content_text = form.content_text.data
-        content.order = form.order.data
-        db.session.commit()
-        flash('Content updated successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=content.module.course.id))
-
-    elif request.method == 'GET':
-        form.title.data = content.title
-        form.content_type.data = content.content_type
-        form.content_url.data = content.content_url
-        form.content_text.data = content.content_text
-        form.order.data = content.order
-
-    return render_template('edit_content.html', form=form, content=content)
-
-
-@app.route('/content/<int:content_id>/delete', methods=['POST'])
-@login_required
-def delete_content(content_id):
-    content = Content.query.get_or_404(content_id)
-    if content.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    course_id = content.module.course.id
-    db.session.delete(content)
-    db.session.commit()
-    flash('Content deleted successfully!', 'success')
-    return redirect(url_for('manage_course', course_id=course_id))
-
-
-@app.route('/quiz/<int:quiz_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_quiz(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)
-    if quiz.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = QuizForm()
-    if form.validate_on_submit():
-        quiz.title = form.title.data
-        quiz.description = form.description.data
-        quiz.time_limit = form.time_limit.data
-        quiz.passing_score = form.passing_score.data
-        db.session.commit()
-        flash('Quiz updated successfully!', 'success')
-        return redirect(url_for('manage_quiz', quiz_id=quiz.id))
-
-    elif request.method == 'GET':
-        form.title.data = quiz.title
-        form.description.data = quiz.description
-        form.time_limit.data = quiz.time_limit
-        form.passing_score.data = quiz.passing_score
-
-    return render_template('edit_quiz.html', form=form, quiz=quiz)
-
-
-@app.route('/quiz/<int:quiz_id>/delete', methods=['POST'])
-@login_required
-def delete_quiz(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)
-    if quiz.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    course_id = quiz.module.course.id
-    db.session.delete(quiz)
-    db.session.commit()
-    flash('Quiz deleted successfully!', 'success')
-    return redirect(url_for('manage_course', course_id=course_id))
-
-
-@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_question(question_id):
-    question = Question.query.get_or_404(question_id)
-    if question.quiz.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = QuestionForm()
-    if form.validate_on_submit():
-        question.text = form.text.data
-        question.question_type = form.question_type.data
-        question.correct_answer = form.correct_answer.data
-        question.points = form.points.data
-
-        if form.question_type.data == 'multiple_choice':
-            question.options = json.dumps([opt.strip() for opt in form.options.data.split('\n') if opt.strip()])
-        else:
-            question.options = None
-
-        db.session.commit()
-        flash('Question updated successfully!', 'success')
-        return redirect(url_for('manage_quiz', quiz_id=question.quiz.id))
-
-    elif request.method == 'GET':
-        form.text.data = question.text
-        form.question_type.data = question.question_type
-        form.correct_answer.data = question.correct_answer
-        form.points.data = question.points
-        if question.options:
-            options = json.loads(question.options)
-            form.options.data = '\n'.join(options)
-
-    return render_template('edit_question.html', form=form, question=question)
-
-
-@app.route('/question/<int:question_id>/delete', methods=['POST'])
-@login_required
-def delete_question(question_id):
-    question = Question.query.get_or_404(question_id)
-    if question.quiz.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    quiz_id = question.quiz.id
-    db.session.delete(question)
-    db.session.commit()
-    flash('Question deleted successfully!', 'success')
-    return redirect(url_for('manage_quiz', quiz_id=quiz_id))
-
-
-@app.route('/assignment/<int:assignment_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_assignment(assignment_id):
-    assignment = Assignment.query.get_or_404(assignment_id)
-    if assignment.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    form = AssignmentForm()
-    if form.validate_on_submit():
-        assignment.title = form.title.data
-        assignment.description = form.description.data
-        if form.due_date.data:
-            assignment.due_date = datetime.strptime(form.due_date.data, '%Y-%m-%d')
-        assignment.max_score = form.max_score.data
-        db.session.commit()
-        flash('Assignment updated successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=assignment.module.course.id))
-
-    elif request.method == 'GET':
-        form.title.data = assignment.title
-        form.description.data = assignment.description
-        if assignment.due_date:
-            form.due_date.data = assignment.due_date.strftime('%Y-%m-%d')
-        form.max_score.data = assignment.max_score
-
-    return render_template('edit_assignment.html', form=form, assignment=assignment)
-
-
-@app.route('/assignment/<int:assignment_id>/delete', methods=['POST'])
-@login_required
-def delete_assignment(assignment_id):
-    assignment = Assignment.query.get_or_404(assignment_id)
-    if assignment.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    course_id = assignment.module.course.id
-    db.session.delete(assignment)
-    db.session.commit()
-    flash('Assignment deleted successfully!', 'success')
-    return redirect(url_for('manage_course', course_id=course_id))
-
-
-@app.route('/submission/<int:submission_id>/grade', methods=['GET', 'POST'])
-@login_required
-def grade_submission(submission_id):
-    submission = Submission.query.get_or_404(submission_id)
-    if submission.assignment.module.course.instructor_id != current_user.id:
-        abort(403)
-
-    if request.method == 'POST':
-        submission.score = float(request.form.get('score'))
-        submission.feedback = request.form.get('feedback')
-        submission.graded_at = datetime.utcnow()
-        db.session.commit()
-        flash('Submission graded successfully!', 'success')
-        return redirect(url_for('manage_course', course_id=submission.assignment.module.course.id))
-
-    return render_template('grade_submission.html', submission=submission)
-
-
-@app.route('/quiz/<int:quiz_id>/results')
-@login_required
-def quiz_results(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)
-    if quiz.module.course.instructor_id != current_user.id and not current_user.is_instructor:
-        abort(403)
-
-    attempts = QuizAttempt.query.filter_by(quiz_id=quiz_id).all()
-    return render_template('quiz_results.html', quiz=quiz, attempts=attempts)
-
-
+# ==================== SEARCH ====================
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
@@ -878,6 +532,7 @@ def search():
     return render_template('search_results.html', courses=courses, query=query)
 
 
+# ==================== PROFILE ====================
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -899,14 +554,15 @@ def profile():
 
     return render_template('profile.html')
 
-# Add custom Jinja2 filters
+
+# ==================== TEMPLATE FILTERS ====================
 @app.template_filter('fromjson')
 def fromjson_filter(value):
-    import json
     try:
         return json.loads(value)
     except:
         return []
+
 
 @app.template_filter('nl2br')
 def nl2br_filter(value):
@@ -914,6 +570,8 @@ def nl2br_filter(value):
         return value.replace('\n', '<br>\n')
     return ''
 
+
+# ==================== MAIN ====================
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

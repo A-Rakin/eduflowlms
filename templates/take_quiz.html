@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Take Quiz: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>{{ quiz.title }}</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ quiz.description }}</p>
+
+                {% if quiz.time_limit %}
+                    <div class="alert alert-warning">
+                        <strong>Time Limit:</strong> {{ quiz.time_limit }} minutes
+                        <div class="float-end" id="timer"></div>
+                    </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('take_quiz', quiz_id=quiz.id) }}" id="quiz-form">
+                    {% for question in quiz.questions %}
+                        <div class="quiz-question">
+                            <h5>Question {{ loop.index }} ({{ question.points }} points)</h5>
+                            <p>{{ question.text }}</p>
+
+                            {% if question.question_type == 'multiple_choice' %}
+                                {% set options = question.options|fromjson %}
+                                {% for option in options %}
+                                    <div class="quiz-option">
+                                        <label>
+                                            <input type="radio" name="question_{{ question.id }}" value="{{ option }}" required>
+                                            {{ option }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+
+                            {% elif question.question_type == 'true_false' %}
+                                <div class="quiz-option">
+                                    <label>
+                                        <input type="radio" name="question_{{ question.id }}" value="True" required>
+                                        True
+                                    </label>
+                                </div>
+                                <div class="quiz-option">
+                                    <label>
+                                        <input type="radio" name="question_{{ question.id }}" value="False" required>
+                                        False
+                                    </label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if quiz.time_limit %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timer = new QuizTimer({{ quiz.time_limit }}, 'timer');
+    timer.start();
+});
+</script>
+{% endif %}
+{% endblock %}

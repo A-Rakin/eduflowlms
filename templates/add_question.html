@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Add Question to "{{ quiz.title }}"</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_question', quiz_id=quiz.id) }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.text.label(class="form-label") }}
+                        {{ form.text(class="form-control" + (" is-invalid" if form.text.errors else ""), rows=3) }}
+                        {% for error in form.text.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.question_type.label(class="form-label") }}
+                        {{ form.question_type(class="form-select" + (" is-invalid" if form.question_type.errors else "")) }}
+                        {% for error in form.question_type.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3" id="options-field">
+                        {{ form.options.label(class="form-label") }}
+                        {{ form.options(class="form-control" + (" is-invalid" if form.options.errors else ""), rows=5) }}
+                        {% for error in form.options.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <small class="text-muted">Enter each option on a new line</small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.correct_answer.label(class="form-label") }}
+                        {{ form.correct_answer(class="form-control" + (" is-invalid" if form.correct_answer.errors else "")) }}
+                        {% for error in form.correct_answer.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <small class="text-muted">For multiple choice, enter the exact option text</small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.points.label(class="form-label") }}
+                        {{ form.points(class="form-control" + (" is-invalid" if form.points.errors else ""), type="number", min="1") }}
+                        {% for error in form.points.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Add Question</button>
+                        <a href="{{ url_for('manage_quiz', quiz_id=quiz.id) }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const questionType = document.getElementById('question_type');
+    const optionsField = document.getElementById('options-field');
+
+    function toggleOptions() {
+        if (questionType.value === 'multiple_choice') {
+            optionsField.style.display = 'block';
+        } else {
+            optionsField.style.display = 'none';
+        }
+    }
+
+    questionType.addEventListener('change', toggleOptions);
+    toggleOptions(); // Initial call
+});
+</script>
+{% endblock %}

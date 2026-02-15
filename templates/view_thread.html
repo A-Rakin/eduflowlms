@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ thread.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('forum', course_id=thread.course.id) }}">Forum</a></li>
+                <li class="breadcrumb-item active">{{ thread.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>{{ thread.title }}</h3>
+                <small class="text-muted">
+                    Posted by {{ thread.user.username }} on {{ thread.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </small>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ thread.content|nl2br }}</p>
+            </div>
+        </div>
+
+        <h4>Replies</h4>
+        <div class="mb-4">
+            {% for post in thread.posts %}
+                <div class="forum-post">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ post.user.username }}</strong>
+                        <small class="text-muted">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                    <p class="mt-2">{{ post.content|nl2br }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if current_user.is_authenticated %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Add a Reply</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_post', thread_id=thread.id) }}">
+                        <div class="mb-3">
+                            <textarea class="form-control" name="content" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Reply</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

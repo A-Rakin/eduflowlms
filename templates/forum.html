@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Forum - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ course.title }} - Discussion Forum</h1>
+            <a href="{{ url_for('new_thread', course_id=course.id) }}" class="btn btn-primary">New Thread</a>
+        </div>
+
+        <div class="thread-list">
+            {% if threads %}
+                {% for thread in threads %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5><a href="{{ url_for('view_thread', thread_id=thread.id) }}">{{ thread.title }}</a></h5>
+                                <p class="mb-1">{{ thread.content[:150] }}...</p>
+                                <small class="text-muted">
+                                    Started by {{ thread.user.username }} |
+                                    {{ thread.created_at.strftime('%Y-%m-%d %H:%M') }} |
+                                    {{ thread.posts|length }} replies
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    No discussion threads yet. <a href="{{ url_for('new_thread', course_id=course.id) }}">Start a new discussion</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

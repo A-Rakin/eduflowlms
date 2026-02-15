@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<h1>Search Results for "{{ query }}"</h1>
+
+{% if courses %}
+    <div class="row mt-4">
+        {% for course in courses %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if course.thumbnail %}
+                        <img src="{{ url_for('static', filename='uploads/' + course.thumbnail) }}"
+                             class="card-img-top" alt="{{ course.title }}">
+                    {% else %}
+                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center"
+                             style="height: 200px;">
+                            <span>No Image</span>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="card-text">{{ course.description[:150] }}...</p>
+                        <p class="text-muted">
+                            <small>Instructor: {{ course.instructor.username }}</small><br>
+                            <small>Category: {{ course.category or 'Uncategorized' }}</small>
+                        </p>
+                        <a href="{{ url_for('view_course', course_id=course.id) }}" class="btn btn-primary">View Course</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        No courses found matching "{{ query }}".
+        <a href="{{ url_for('index') }}" class="alert-link">Browse all courses</a>
+    </div>
+{% endif %}
+{% endblock %}

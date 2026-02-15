@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Add Quiz{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Add Quiz to "{{ module.title }}"</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_quiz', module_id=module.id) }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% for error in form.title.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3) }}
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.time_limit.label(class="form-label") }}
+                        {{ form.time_limit(class="form-control" + (" is-invalid" if form.time_limit.errors else ""), type="number", min="0") }}
+                        {% for error in form.time_limit.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <small class="text-muted">Time limit in minutes (0 for no limit)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.passing_score.label(class="form-label") }}
+                        {{ form.passing_score(class="form-control" + (" is-invalid" if form.passing_score.errors else ""), type="number", min="0", max="100") }}
+                        {% for error in form.passing_score.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <small class="text-muted">Passing score percentage</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Add Quiz</button>
+                        <a href="{{ url_for('manage_course', course_id=module.course.id) }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
